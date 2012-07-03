@@ -6,40 +6,94 @@
 #define right_SW	BIT5
 #define relay		BIT0
 
-void delay(void); 							// Will be used as a shutoff timer
+void delay(unsigned int); 							// Used to wait for a second
+void openTooLong(void);							// Used as a shutoff timer
+
+int counter;
+int leftOn;
+int rightOn;
 
 void main(void) {
 
     WDTCTL = WDTPW + WDTHOLD;
 
     P1OUT = 0;
-    P1DIR |= left_LED + right_LED + relay;  // LED pins to outputs, SW's and relay
-                                 			// are still inputs by default
+    P1DIR |= left_LED + right_LED + relay;	// LED pins to outputs, SW's and relay
+                                 			// are inputs by default
+
+	counter = 0;
 
     for (;;) {
 
-	   if ((P1IN & left_SW) != left_SW){	// Wait for left reed switch to disengage
+		if ((P1IN & left_SW) != left_SW){	// Wait for left reed switch to disengage
 			P1OUT |= left_LED;   			// Left LED on
 			P1OUT |= relay;   				// Relay on
-	   }
-	   if ((P1IN & left_SW) == left_SW){  	// Wait for left reed switch to engage
+			leftOn = 1;
+		}
+		if ((P1IN & left_SW) == left_SW){	// Wait for left reed switch to engage
 			P1OUT &= ~left_LED;  			// Left LED off
 			P1OUT &= ~relay;  				// Relay off
-	   }  									
-	   if ((P1IN & right_SW) != right_SW){  // Wait for right reed switch to disengage
+			leftOn = 0;
+		}  									
+		if ((P1IN & right_SW) != right_SW){	// Wait for right reed switch to disengage
 			P1OUT |= right_LED;				// Right LED on 
         	P1OUT |= relay;   				// Relay on
-	   }  
-	   if ((P1IN & right_SW) == right_SW){  // Wait for right reed switch to engage
+        	rightOn = 1;
+		}  
+		if ((P1IN & right_SW) == right_SW){	// Wait for right reed switch to engage
 			P1OUT &= ~right_LED;  			// Right LED off
 			P1OUT &= ~relay;  				// Relay off
-	   }
-	   
+			rightOn = 0;
+		}
+		
+		// Each time the relay is open, count up a second until 15 seconds 
+		// (5 min) are reached, then turn the relay off until the doors are shut
+		if (rightOn == 1 | leftOn == 1){
+	   		delay(1);
+	   		++counter;
+	   		if (counter == 15000){
+	   			openTooLong();
+	   		}
+		}
+		if ((rightOn & leftOn) == 0){
+			counter = 0;
+		}
+		
 	}
 	
 }
 
-void delay(void) {
-    unsigned int count;
-    for (count=0; count<60000; count++);
+
+// Delays by the specified Milliseconds
+void delay(unsigned int ms) {
+ 	while (ms--) {
+		__delay_cycles(1000);
+    }
+}
+
+// Wait for both doors to close, then resets to main
+void openTooLong(void) {
+	P1OUT &= ~relay;  				// Relay off
+	for (;;){
+		if ((P1IN & left_SW) != left_SW){	// Wait for left reed switch to disengage
+			P1OUT |= left_LED;   			// Left LED on
+			leftOn = 1;
+		}
+		if ((P1IN & left_SW) == left_SW){	// Wait for left reed switch to engage
+			P1OUT &= ~left_LED;  			// Left LED off
+			leftOn = 0;
+		}  									
+		if ((P1IN & right_SW) != right_SW){	// Wait for right reed switch to disengage
+			P1OUT |= right_LED;				// Right LED on 
+        	rightOn = 1;
+		}  
+		if ((P1IN & right_SW) == right_SW){	// Wait for right reed switch to engage
+			P1OUT &= ~right_LED;  			// Right LED off
+			rightOn = 0;
+		}
+		
+		if ((rightOn & leftOn) == 0){
+			main();
+		}
+	}
 }
