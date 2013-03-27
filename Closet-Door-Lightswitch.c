@@ -1,3 +1,24 @@
+//***************************************************************************************
+// Closet Door Lightswitch
+//
+// By: Dillon Nichols
+// http://tinkeringetc.blogspot.com/
+//
+// Created in Code Composer Studio v4.2.5
+//
+// Description: 
+// A project that detects when a closet door is opened and then automatically turns on
+// the closet lighting. It is controlled by a TI MSP430G2001 microcontroller that is
+// powered from 3.3V DC derived from 120V AC line voltage. Reed switches and magnets on
+// the doors of the closet act as a switch so the microcontroller can detect when the
+// door is opened and turn on an LED indicating that one of the doors is open. If at
+// least one of the doors is open, the microcontroller switches a relay to turn on an
+// overhead light. The light is automatically shut off after five minutes if the doors
+// are not shut.
+//
+// This work is licensed under a Creative Commons Attribution 3.0 Unported License.
+//***************************************************************************************
+
 #include <msp430g2001.h>
 
 #define left_LED	BIT4
@@ -9,7 +30,7 @@
 void delay(unsigned int);					// Used to wait for one second
 void openTooLong(void);						// Used as a shutoff timer
 
-int counter = 0;
+long counter = 0;
 int leftOn, rightOn;
 
 void main(void) {
