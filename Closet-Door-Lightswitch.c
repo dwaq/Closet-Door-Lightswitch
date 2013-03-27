@@ -2,7 +2,7 @@
 // Closet Door Lightswitch
 //
 // By: Dillon Nichols
-// http://tinkeringetc.blogspot.com/
+// http://tinkeringetc.blogspot.com/2013/03/closet-door-lightswitch.html
 //
 // Created in Code Composer Studio v4.2.5
 //
